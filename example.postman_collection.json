@@ -1,0 +1,180 @@
+{
+	"info": {
+		"_postman_id": "9b1bc68f-68d7-4b5e-ad26-8c6f09f772d7",
+		"name": "Walutomat Open Banking Services for Third Party Providers (1.0.1)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17891420"
+	},
+	"item": [
+		{
+			"name": "Lib install",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code should be 200\", function () {",
+							"    pm.response.to.have.status(200)",
+							"    pm.globals.set(\"pmlib_code\", responseBody)",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://joolfe.github.io/postman-util-lib/dist/bundle.js",
+					"protocol": "https",
+					"host": [
+						"joolfe",
+						"github",
+						"io"
+					],
+					"path": [
+						"postman-util-lib",
+						"dist",
+						"bundle.js"
+					]
+				},
+				"description": "Load the postman-util-lib from github.io and load into postman global variable."
+			},
+			"response": []
+		},
+		{
+			"name": "Example request",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"eval(pm.globals.get('pmlib_code'))",
+							"",
+							"const privkey_pem = pm.environment.get('privkey_pem')",
+							"const cert_pem = pm.environment.get('cert_pem')",
+							"",
+							"const thumbprint = pmlib.rs.KEYUTIL.getJWK(cert_pem)['x5t#S256']",
+							"",
+							"const sign = pmlib.rs.jws.JWS.sign('PS256', JSON.stringify({",
+							"    kid: thumbprint,",
+							"    x5u: 'https://gist.githubusercontent.com/suside/5292980429261b52c5726eeeb8f6b3ea/raw/97ac4f9553a7c696f9e1816803b13ca1adfab46a/qseal.pem',",
+							"    'x5t#S256': thumbprint,",
+							"    alg: 'PS256',",
+							"    crit: [\"iat\"],",
+							"    iat: Math.round(Date.now() / 1000)",
+							"}), pm.request.body.raw, privkey_pem)",
+							"",
+							"pm.variables.set('json_web_signature', sign.replace(/\\..*\\./,'..'))"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-JWS-SIGNATURE",
+						"value": "{{json_web_signature}}",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"test\": 1\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://tpp.wt.dev.c1.org.pl/api/v3/DEBUG",
+					"protocol": "https",
+					"host": [
+						"tpp",
+						"wt",
+						"dev",
+						"c1",
+						"org",
+						"pl"
+					],
+					"path": [
+						"api",
+						"v3",
+						"DEBUG"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"try {",
+					"    eval(pm.globals.get('pmlib_code'))",
+					"",
+					"    const privkey_pem = pm.collectionVariables.get('privkey_pem')",
+					"    const cert_pem = pm.collectionVariables.get('cert_pem')",
+					"",
+					"    const thumbprint = pmlib.rs.KEYUTIL.getJWK(cert_pem)['x5t#S256']",
+					"",
+					"    const sign = pmlib.rs.jws.JWS.sign('PS256', JSON.stringify({",
+					"        kid: thumbprint,",
+					"        x5u: 'https://gist.githubusercontent.com/suside/5292980429261b52c5726eeeb8f6b3ea/raw/97ac4f9553a7c696f9e1816803b13ca1adfab46a/qseal.pem',",
+					"        'x5t#S256': thumbprint,",
+					"        alg: 'PS256'",
+					"    }), pm.request.body.raw, privkey_pem)",
+					"",
+					"    pm.variables.set('json_web_signature', sign.replace(/\\..*\\./,'..'))",
+					"} catch (err) {",
+					"    console.warn(err)",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "privkey_pem",
+			"value": "",
+			"type": "default"
+		},
+		{
+			"key": "cert_pem",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
